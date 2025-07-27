@@ -32,6 +32,7 @@ function getHomeAssistentAuthHeader(): { headers: { Authorization: string } } {
 
 console.log('##########################################');
 console.log('       WELCOME TO DARTS-ROOMLY');
+console.log(`       Home Assistant Server: ${hoasEndpoint}`);
 console.log('##########################################');
 const socket = io('wss://127.0.0.1:8079', {
   transports: ['websocket'],
