@@ -6,6 +6,8 @@ start-custom.bat
 test-exe.bat
 elements_*.txt
 *.exe
+.env
+dist
 
 # VSCode (Editor)
 /.elixir_ls

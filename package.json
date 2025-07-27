@@ -1,20 +1,30 @@
 {
-  "name": "darts-extern",
-  "version": "1.6.0",
-  "description": "Synchronizes an autodarts.io game with extern dart-web-platforms",
-  "author": "wusaaa",
-  "main": "server.js",
+  "name": "darts-roomly",
+  "version": "1.0.0",
+  "target": "es2020",
+  "module": "commonjs",
+  "description": "darts-caller events consumer",
+  "author": "sver",
+  "main": "dist/app.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "tsc && node dist/app.js",
+    "lint": "eslint . --ext .ts"
   },
   "dependencies": {
+    "axios": "^1.11.0",
     "config": "^3.3.7",
-    "express": "^4.18.1",
-    "puppeteer": "^16.2.0",
-    "puppeteer-extra": "^3.3.4",
-    "puppeteer-extra-plugin-stealth": "^2.11.1",
-    "minimist": "^1.2.6",
-    "socket.io-client": "^4.7.5"
+    "dotenv": "^17.2.1",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@types/node": "^24.1.0",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.3.0",
+    "prettier": "3.6.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }
-
