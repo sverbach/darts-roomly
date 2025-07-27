@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import express from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -30,10 +31,16 @@ function getHomeAssistentAuthHeader(): { headers: { Authorization: string } } {
   };
 }
 
-console.log('##########################################');
+console.log(
+  '###################################################################'
+);
 console.log('       WELCOME TO DARTS-ROOMLY');
-console.log(`       Home Assistant Server: ${hoasEndpoint}`);
-console.log('##########################################');
+console.log(
+  `       Home Assistant Server: ${process.env.HOME_ASSISTANT_ENDPOINT}`
+);
+console.log(
+  '###################################################################'
+);
 const socket = io('wss://127.0.0.1:8079', {
   transports: ['websocket'],
   rejectUnauthorized: false,
@@ -110,4 +117,15 @@ socket.on('message', async (body) => {
       }, 2000);
       break;
   }
+});
+
+const app = express();
+const PORT = 3000;
+
+app.get('/health', (_req, res) => {
+  res.sendStatus(200);
+});
+
+app.listen(PORT, () => {
+  console.log(`healthcheck is running on port ${PORT}`);
 });
