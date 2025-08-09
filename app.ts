@@ -51,7 +51,7 @@ console.log(
 console.log(
   '###################################################################'
 );
-const socket = io('wss://192.168.1.141:8079', {
+const socket = io('wss://127.0.0.1:8079', {
   transports: ['websocket'],
   rejectUnauthorized: false,
   reconnection: true,
