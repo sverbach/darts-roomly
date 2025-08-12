@@ -11,6 +11,7 @@ const title = `
   ${chalk.black.bold('DARTS-ROOMLY 🤖🤖')}\n
   ${chalk.black.bold('Home Assistant Server: ' + chalk.white(process.env.HOME_ASSISTANT_ENDPOINT_URL))}\n
   ${chalk.black.bold('Home Assistant Bearer: ' + chalk.white(process.env.HOME_ASSISTANT_BEARER))}\n
+  ${chalk.black.bold('Home Assistant WLED Entity: ' + chalk.white(process.env.HOME_ASSISTANT_WLED_ENTITY_ID))}\n
   ${chalk.black.bold('Dart Event WS SocketIO Server: ' + chalk.white(process.env.SOCKET_IO_ENDPOINT))}\n`;
 
 const welcome = boxen(title, {

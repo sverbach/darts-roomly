@@ -11,5 +11,5 @@ export const HomeAssistantConfig = {
     WIN: 'Dart Win',
     WIN_IDLE: 'Dart Win Idle',
   },
-  wledEntityId: 'select.mc_0_wled_roof_preset',
+  wledEntityId: process.env.HOME_ASSISTANT_WLED_ENTITY_ID,
 };
