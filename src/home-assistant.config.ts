@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 export const HomeAssistantConfig = {
   selectOptionEndpointUrl: `${process.env.HOME_ASSISTANT_ENDPOINT_URL}/api/services/select/select_option`,
   bearer: process.env.HOME_ASSISTANT_BEARER,

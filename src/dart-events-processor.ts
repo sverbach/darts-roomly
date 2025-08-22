@@ -18,11 +18,16 @@ function getHomeAssistentAuthHeader(): { headers: { Authorization: string } } {
 }
 
 function changeLightingPreset(presetName: string): Promise<void> {
-  return axios.post(
-    HomeAssistantConfig.selectOptionEndpointUrl,
-    getHomeAssistentRequestPayload(presetName),
-    getHomeAssistentAuthHeader()
-  );
+  try {
+    return axios.post(
+      HomeAssistantConfig.selectOptionEndpointUrl,
+      getHomeAssistentRequestPayload(presetName),
+      getHomeAssistentAuthHeader()
+    );
+  } catch (ex: any) {
+    console.warn(ex);
+    return Promise.resolve();
+  }
 }
 
 export async function processDartEvent(eventMessage: AutodartsEventType) {
