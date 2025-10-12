@@ -1,0 +1,40 @@
+{
+  "name": "darts-roomly",
+  "version": "1.0.0",
+  "target": "es2020",
+  "module": "commonjs",
+  "description": "darts-caller events consumer",
+  "author": "sver",
+  "type": "module",
+  "main": "dist/app.js",
+  "scripts": {
+    "start": "tsc && node dist/app.js",
+    "mainstage": "tsc && node dist/app.js -s 192.168.1.171:8079 -b c2747698-bbf1-4edc-af85-83260f23b866 -l true",
+    "sidestage": "tsc && node dist/app.js -s 192.168.1.171:8080 -b a5f9eadd-7eb6-4375-bf83-146b65e453c8 -l false",
+    "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.3",
+    "axios": "^1.11.0",
+    "boxen": "^8.0.1",
+    "chalk": "^5.5.0",
+    "config": "^3.3.7",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "mongodb": "^6.20.0",
+    "socket.io-client": "^4.8.1",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@types/node": "^24.1.0",
+    "@types/yargs": "^17.0.33",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.3.0",
+    "prettier": "3.6.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
