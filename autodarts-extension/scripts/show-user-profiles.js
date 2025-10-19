@@ -1,4 +1,4 @@
-const DARTS_API_SERVER = 'http://192.168.1.171:3000';
+const DARTS_API_SERVER = 'http://192.168.1.171:8082';
 
 async function insertUserProifleImages() {
   const cards = [...document.querySelectorAll('div.ad-ext-player')];
