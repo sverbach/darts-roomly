@@ -9,12 +9,9 @@
   ],
   "content_scripts": [
     {
-      "js": ["scripts/show-guest-accounts.js"],
-      "matches": ["https://play.autodarts.io/lobbies/*"]
-    },
-    {
-      "js": ["scripts/show-user-profiles.js"],
-      "matches": ["https://play.autodarts.io/matches/*"]
+      "js": ["scripts/index.js"],
+      "matches": ["https://play.autodarts.io/*"],
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [{
