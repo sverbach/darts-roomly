@@ -1,14 +1,26 @@
 {
-  "name": "Hello Extensions",
-  "description": "Base Level Extension",
+  "name": "Darts Roomly Extension",
+  "description": "Chrome extension to use for playing dart @ romoly",
   "version": "1.0",
   "manifest_version": 3,
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "http://192.168.1.171:3000/*",
+  ],
   "content_scripts": [
     {
       "js": ["scripts/show-guest-accounts.js"],
       "matches": ["https://play.autodarts.io/lobbies/*"]
+    },
+    {
+      "js": ["scripts/show-user-profiles.js"],
+      "matches": ["https://play.autodarts.io/matches/*"]
     }
   ],
+  "web_accessible_resources": [{
+    "resources": ["assets/*"],
+    "matches": ["*://*/*"]
+  }],
   "action": {
     "default_popup": "extension.html",
     "default_icon": "extension.png"

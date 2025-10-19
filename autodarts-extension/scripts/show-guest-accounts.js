@@ -1,8 +1,8 @@
 function replaceLocalPlayers(clearButton, input, addPlayerButton) {
   const players = [
-    "DOMI", "JANOSCH", "STEFANO", "LUCAS", "CELINE",
+    "DOMI", "JAN", "STEFANO", "LUCAS", "CELINE",
     "JOEP", "CHRIS", "ALBU", "PHILIPPE", "PERI",
-    "2SANDY", "SCHWENDI", "SHIMI", "VOLKI"
+    "2SANDY", "SCHWENDI", "SHIMI", "VOLKI", "SCHWEMBINI"
   ].sort();
 
   const parent = clearButton.parentNode;
