@@ -91,7 +91,7 @@ function createUserProfileImage(userProfile) {
 }
 
 async function loadUserProfile(username) {
-  const DARTS_API_SERVER = 'https://pelican.nvier.ch';
+  const DARTS_API_SERVER = 'https://darts.nvier.ch';
   const response = await fetch(`${DARTS_API_SERVER}/users/${username}`);
   console.log(response);
 
