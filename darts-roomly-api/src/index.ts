@@ -3,7 +3,7 @@ import cors from "cors";
 import { MongoClient, Db } from 'mongodb';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8082;
 
 const MONGO_URI = 'mongodb://192.168.1.170:27017/';
 const DB_NAME = 'roomly-darts';
