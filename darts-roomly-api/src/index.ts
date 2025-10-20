@@ -1,13 +1,16 @@
 import express, { Request, Response } from 'express';
 import cors from "cors";
 import { MongoClient, Db } from 'mongodb';
+import cron from 'node-cron';
+import { ingestPlayerDartEvents } from './ingest-player-dart-events.js';
 
 const app = express();
 const PORT = process.env.PORT || 8082;
 
 const MONGO_URI = 'mongodb://192.168.1.170:27017/';
+// const MONGO_URI = 'mongodb://localhost:27017/';
 const DB_NAME = 'roomly-darts';
-const COLLECTION_NAME = 'dart-players';
+const DART_PLAYERS_COLLECTION_NAME = 'dart-players';
 
 let db: Db;
 
@@ -23,6 +26,7 @@ async function connectToMongo() {
     const client = await MongoClient.connect(MONGO_URI);
     db = client.db(DB_NAME);
     console.log('Connected to MongoDB');
+    ingestPlayerDartEvents(db);
   } catch (error) {
     console.error('MongoDB connection error:', error);
     process.exit(1);
@@ -34,7 +38,7 @@ app.get('/users/:name', async (req: Request, res: Response) => {
   try {
     const { name } = req.params;
 
-    const collection = db.collection(COLLECTION_NAME);
+    const collection = db.collection(DART_PLAYERS_COLLECTION_NAME);
     const player = await collection.findOne({ name });
 
     if (!player) {
@@ -63,3 +67,9 @@ async function startServer() {
 }
 
 startServer();
+
+// cron job
+cron.schedule("* * 23 * * *", () => {
+  ingestPlayerDartEvents(db);
+});
+
