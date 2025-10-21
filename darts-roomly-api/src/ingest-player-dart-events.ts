@@ -1,24 +1,5 @@
 import { Db } from 'mongodb';
-
-interface DartEvent {
-  _id?: any;
-  event: string;
-  player: string;
-  timestamp: number;
-  [key: string]: any;
-}
-
-interface DartPlayer {
-  _id?: any;
-  name: string;
-  events?: DartEvent[];
-  picture: string | null;
-}
-
-interface IngestionClock {
-  _id?: any;
-  lastIngestionTimestamp: number;
-}
+import { IngestionClock, DartEvent, DartEventSane, DartPlayer } from './models.js';
 
 /**
   * Pushes the latest dart events to the respective player.
@@ -52,14 +33,24 @@ async function ingestPlayerDartEvents(db: Db): Promise<void> {
 
   // Step 3: Group events by player and update dart-players collection
   const dartPlayersCollection = db.collection<DartPlayer>('dart-players');
-  const playerEventsMap = new Map<string, DartEvent[]>();
+  const playerEventsMap = new Map<string, DartEventSane[]>();
 
   // Group events by player
   for (const event of newEvents) {
     if (!playerEventsMap.has(event.player)) {
       playerEventsMap.set(event.player, []);
     }
-    playerEventsMap.get(event.player)!.push(event);
+    playerEventsMap.get(event.player)!.push({
+      ...event,
+      playerIndex: Number(event.playerIndex),
+      game: {
+        ...event.game,
+        pointsLeft: Number(event.game.pointsLeft),
+        dartsThrown: Number(event.game.dartsThrown),
+        dartsThrownValue: Number(event.game.dartsThrownValue),
+        busted: event.game.busted.toLowerCase() === "true"
+      }
+    });
   }
 
   console.log(`Processing events for ${playerEventsMap.size} unique players`);
