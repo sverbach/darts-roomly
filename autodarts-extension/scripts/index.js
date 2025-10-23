@@ -10,9 +10,6 @@ new MutationObserver(() => {
   }
 }).observe(document, { subtree: true, childList: true });
 
-// Also listen to popstate (back/forward buttons)
-window.addEventListener('popstate', onUrlChange);
-
 // Intercept pushState and replaceState
 const originalPushState = history.pushState;
 const originalReplaceState = history.replaceState;
@@ -28,25 +25,60 @@ history.replaceState = function () {
 };
 
 function onUrlChange() {
-  if (location.href.includes("/lobbies/") && !location.href.includes("/lobbies/new")) {
+  if (
+    location.href.includes('/lobbies/') &&
+    !location.href.includes('/lobbies/new')
+  ) {
     setTimeout(() => {
       replaceLocalPlayers();
-    }, 1500)
+    }, 1750);
   }
 
-  if (location.href.includes("/play")) {
+  if (location.href.includes('/matches')) {
+    console.log("match");
     setTimeout(async () => {
+      removeProfileImages();
       await insertUserProfileImages();
-    }, 1500);
+      replaceImagesOnPlayerChange();
+    }, 1750);
   }
+}
+
+function replaceImagesOnPlayerChange() {
+  const playerName = document.querySelector('.ad-ext-player-name p');
+  const observer = new MutationObserver(async (mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'characterData') {
+        console.log('Player name changed:', playerName.textContent);
+
+        removeProfileImages();
+        await insertUserProfileImages();
+
+        break; // Only run once per batch of mutations
+      }
+    }
+  });
+
+  observer.observe(playerName, {
+    characterData: true,  // Direct text node changes
+    childList: true,      // Child nodes added/removed
+    subtree: true         // Watch all descendants
+  });
+}
+
+function removeProfileImages() {
+  const images = [...document.querySelectorAll('.roomly-player-image')];
+  images.forEach(img => img.remove());
 }
 
 async function insertUserProfileImages() {
   const cards = [...document.querySelectorAll('div.ad-ext-player')];
 
   await Promise.all(
-    cards.map(async card => {
-      const playerNameParagraph = card.querySelector('span.ad-ext-player-name p:first-child');
+    cards.map(async (card) => {
+      const playerNameParagraph = card.querySelector(
+        'span.ad-ext-player-name p:first-child'
+      );
       const username = playerNameParagraph.innerText.toLowerCase();
       const profile = await loadUserProfile(username);
       const image = createUserProfileImage(profile);
@@ -60,7 +92,6 @@ async function insertUserProfileImages() {
 function createUserProfileImage(userProfile) {
   // Create the img element
   const img = document.createElement('img');
-
 
   if (userProfile) {
     // Set the source to the base64 encoded picture
@@ -86,6 +117,9 @@ function createUserProfileImage(userProfile) {
   img.style.padding = '8px';
   img.style.background = 'rgba(255, 255, 255, 0.2)';
 
+  // Apply identifier for removal
+  img.classList.add('roomly-player-image');
+
   // Return the created element
   return img;
 }
@@ -103,13 +137,31 @@ async function loadUserProfile(username) {
 }
 
 function replaceLocalPlayers() {
-  const clearButton = document.querySelector('button[aria-label="Clear local players"]');
-  const input = document.querySelector('input[placeholder="Enter name for local player"]');
-  const addPlayerButton = document.querySelector('button[aria-label="add-player"]');
+  const clearButton = document.querySelector(
+    'button[aria-label="Clear local players"]'
+  );
+  const input = document.querySelector(
+    'input[placeholder="Enter name for local player"]'
+  );
+  const addPlayerButton = document.querySelector(
+    'button[aria-label="add-player"]'
+  );
   const players = [
-    "DOMI", "JAN", "STEFANO", "LUCAS", "CELINE",
-    "JOEP", "CHRIS", "ALBU", "PHILIPPE", "PERI",
-    "2SANDY", "SCHWENDI", "SHIMI", "VOLKI", "SCHWEMBINI"
+    'DOMI',
+    'JAN',
+    'STEFANO',
+    'LUCAS',
+    'CELINE',
+    'JOEP',
+    'CHRIS',
+    'ALBU',
+    'PHILIPPE',
+    'PERI',
+    '2SANDY',
+    'SCHWENDI',
+    'SHIMI',
+    'VOLKI',
+    'SCHWEMBINI',
   ].sort();
 
   const parent = clearButton.parentNode;
@@ -123,10 +175,10 @@ function replaceLocalPlayers() {
 
   // Remove existing player buttons
   const existingButtons = parent.querySelectorAll('button:not([aria-label])');
-  existingButtons.forEach(btn => btn.style.display = 'none');
+  existingButtons.forEach((btn) => (btn.style.display = 'none'));
 
   // Insert a new button for each player before the "Clear local players" button
-  players.forEach(player => {
+  players.forEach((player) => {
     const newButton = document.createElement('button');
     newButton.type = 'button';
     newButton.className = buttonClass;
@@ -138,7 +190,7 @@ function replaceLocalPlayers() {
       input.dispatchEvent(new Event('change', { bubbles: true }));
       newButton.remove();
       addPlayerButton.click();
-    }
+    };
     parent.insertBefore(newButton, clearButton);
   });
 }
@@ -153,7 +205,8 @@ style.textContent = `
     transition: opacity 0.3s ease;
   }
 
-  .ad-ext-player.ad-ext-player-active img {
+  .ad-ext-player.ad-ext-player-active img,
+  .ad-ext-player.ad-ext-player-winner img {
     opacity: 1;
   }
 `;

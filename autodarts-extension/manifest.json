@@ -14,15 +14,17 @@
       "run_at": "document_idle"
     }
   ],
-  "web_accessible_resources": [{
-    "resources": ["assets/*"],
-    "matches": ["*://*/*"]
-  }],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["*://*/*"]
+    }
+  ],
   "action": {
     "default_popup": "extension.html",
     "default_icon": "extension.png"
   },
-   "browser_specific_settings": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "roomly-darts-extension@nvier.deinemum",
       "strict_min_version": "109.0"
