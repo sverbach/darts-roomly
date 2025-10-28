@@ -1,4 +1,5 @@
-// In your content script
+// const DARTS_API_SERVER = 'https://darts.nvier.ch';
+const DARTS_API_SERVER = 'http://localhost:8082';
 let lastUrl = location.href;
 
 // Create observer for URL changes
@@ -35,12 +36,118 @@ function onUrlChange() {
   }
 
   if (location.href.includes('/matches')) {
-    console.log("match");
     setTimeout(async () => {
       removeProfileImages();
       await insertUserProfileImages();
       replaceImagesOnPlayerChange();
+      await trackScoreIntoDatabase();
     }, 1750);
+  }
+}
+
+async function trackScoreIntoDatabase() {
+  // first, inserta new match, id from the url
+  const paths = location.pathname.split("/");
+  const matchId = paths[paths.length - 1];
+  const players = [...document.querySelectorAll('.ad-ext-player-name p')].map(p => p.textContent.toLowerCase());
+
+  await createMatch(matchId, players);
+
+
+  // then, on each change on the score component, capture and persist the score of the current player.
+  const scoreComponent = document.querySelector('.ad-ext-turn-points');
+  const observer = new MutationObserver(async (mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'characterData') {
+        const player = getActivePlayerName();
+        const throws = [...document.querySelectorAll('.ad-ext-turn-throw p')].map(p => p.textContent.toLowerCase());
+        const remainingPoints = getActivePlayerRemainingPoints();
+        const totalThrowValue = scoreComponent.textContent.toLowerCase() === 'bust' ? -1 : Number(scoreComponent.textContent);
+        const currentThrowNumber = Number([...document.querySelectorAll('.ad-ext-player-active p'), ...document.querySelectorAll('.ad-ext-player-winner p')]
+          .find(p => p.textContent.includes('#'))
+          .textContent
+          .split('|')[0]
+          .trim()
+          .substring(1));
+
+        if (throws.length === 0) {
+          // just started the turn, don't need to persist that.
+          break;
+        }
+        await addTurn(matchId, { player, throws, remainingPoints, totalThrowValue, currentThrowNumber });
+        break; // Only run once per batch of mutations
+      }
+    }
+  });
+
+  observer.observe(scoreComponent, {
+    characterData: true,  // Direct text node changes
+    childList: true,      // Child nodes added/removed
+    subtree: true        // Watch all descendants
+  });
+}
+
+function getActivePlayerName() {
+  return (document.querySelector('.ad-ext-player-active .ad-ext-player-name p')
+    ?? document.querySelector('.ad-ext-player-winner .ad-ext-player-name p')).textContent.toLowerCase();
+}
+
+function getActivePlayerRemainingPoints() {
+  return Number((document.querySelector('.ad-ext-player-active .ad-ext-player-score')
+    ?? document.querySelector('.ad-ext-player-winner .ad-ext-player-score')).textContent.toLowerCase());
+}
+
+async function createMatch(matchId, players) {
+  try {
+    const response = await fetch(`${DARTS_API_SERVER}/matches`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        matchId,
+        players
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create match');
+    }
+
+    const match = await response.json();
+    console.log('Match created:', match);
+    return match;
+  } catch (error) {
+    console.error('Error creating match:', error);
+    throw error;
+  }
+}
+
+// Add a turn to a match
+async function addTurn(matchId, turn) {
+  try {
+    const response = await fetch(`${DARTS_API_SERVER}/matches/${matchId}/turns`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        turn
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to add turn');
+    }
+
+    const updatedMatch = await response.json();
+    console.log('Turn added:', updatedMatch);
+    return updatedMatch;
+  } catch (error) {
+    console.error('Error adding turn:', error);
+    throw error;
   }
 }
 
@@ -125,15 +232,17 @@ function createUserProfileImage(userProfile) {
 }
 
 async function loadUserProfile(username) {
-  const DARTS_API_SERVER = 'https://darts.nvier.ch';
-  const response = await fetch(`${DARTS_API_SERVER}/users/${username}`);
-  console.log(response);
+  try {
+    const response = await fetch(`${DARTS_API_SERVER}/users/${username}`);
 
-  if (response.ok) {
-    return await response.json();
+    if (response.ok) {
+      return await response.json();
+    }
+
+    return null;
+  } catch (ex) {
+    console.error('error fetching profiles:', ex);
   }
-
-  return null;
 }
 
 function replaceLocalPlayers() {
@@ -201,14 +310,14 @@ function replaceLocalPlayers() {
 // In your content script
 const style = document.createElement('style');
 style.textContent = `
-  .ad-ext-player img {
-    opacity: 0.3;
-    transition: opacity 0.3s ease;
-  }
+      .ad - ext - player img {
+        opacity: 0.3;
+        transition: opacity 0.3s ease;
+      }
 
-  .ad-ext-player.ad-ext-player-active img,
-  .ad-ext-player.ad-ext-player-winner img {
-    opacity: 1;
+        .ad - ext - player.ad - ext - player - active img,
+  .ad - ext - player.ad - ext - player - winner img {
+        opacity: 1;
   }
 `;
 document.head.appendChild(style);

@@ -3,12 +3,13 @@ import cors from "cors";
 import { MongoClient, Db } from 'mongodb';
 import cron from 'node-cron';
 import { ingestPlayerDartEvents } from './ingest-player-dart-events.js';
-import { DartPlayer } from './models.js';
+import { AddTurnRequest, CreateMatchRequest, DartPlayer, Match, Turn } from './models.js';
 import { publicProcedure, router, createContext } from './trpc.js';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { z } from "zod";
 
 const app = express();
+app.use(express.json());
 const PORT = process.env.PORT || 8082;
 
 // const MONGO_URI = 'mongodb://192.168.1.170:27017/';
@@ -30,7 +31,6 @@ async function connectToMongo() {
     const client = await MongoClient.connect(MONGO_URI);
     db = client.db(DB_NAME);
     console.log('Connected to MongoDB');
-    ingestPlayerDartEvents(db);
   } catch (error) {
     console.error('MongoDB connection error:', error);
     process.exit(1);
@@ -85,6 +85,138 @@ app.get('/users/:name', async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.post(
+  '/matches',
+  async (
+    req: Request<{}, {}, CreateMatchRequest>,
+    res: Response
+  ) => {
+    try {
+      const { matchId, players } = req.body;
+
+      // Validation
+      if (!matchId || typeof matchId !== 'string') {
+        res.status(400).json({ error: 'Valid matchId is required' });
+        return;
+      }
+
+      if (!Array.isArray(players) || players.length === 0) {
+        res.status(400).json({ error: 'Players array must contain at least one player' });
+        return;
+      }
+
+      if (!players.every(player => typeof player === 'string')) {
+        res.status(400).json({ error: 'All players must be strings' });
+        return;
+      }
+
+      // Check if match already exists
+      const existingMatch = await db.collection<Match>('matches').findOne({ matchId });
+      if (existingMatch) {
+        res.status(200).json({ ...existingMatch });
+        return;
+      }
+
+      // Create match
+      const match: Match = {
+        matchId,
+        players,
+        turns: []
+      };
+
+      const result = await db.collection<Match>('matches').insertOne(match);
+
+      res.status(201).json({
+        ...match,
+        _id: result.insertedId
+      });
+    } catch (error) {
+      console.error('Error creating match:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
+// Add a turn to an existing match
+app.post(
+  '/matches/:matchId/turns',
+  async (
+    req: Request<{ matchId: string }, {}, Omit<AddTurnRequest, 'matchId'>>,
+    res: Response
+  ) => {
+    try {
+      const { matchId } = req.params;
+      const { turn } = req.body;
+
+      // Validation
+      if (!turn || typeof turn !== 'object') {
+        res.status(400).json({ error: 'Valid turn object is required' });
+        return;
+      }
+
+      if (typeof turn.player !== 'string') {
+        res.status(400).json({ error: 'Turn player must be a string' });
+        return;
+      }
+
+      if (typeof turn.remainingPoints !== 'number') {
+        res.status(400).json({ error: 'remainingPoints must be a number' });
+        return;
+      }
+
+      if (typeof turn.totalThrowValue !== 'number') {
+        res.status(400).json({ error: 'totalThrowValue must be a number' });
+        return;
+      }
+
+      if (typeof turn.currentThrowNumber !== 'number') {
+        res.status(400).json({ error: 'currentThrowNumber must be a number' });
+        return;
+      }
+
+      if (!Array.isArray(turn.throws) || turn.throws.length === 0 || turn.throws.length > 3) {
+        res.status(400).json({ error: 'throws must be an array with 1-3 elements' });
+        return;
+      }
+
+      if (!turn.throws.every(t => typeof t === 'string')) {
+        res.status(400).json({ error: 'All throws must be strings' });
+        return;
+      }
+
+      // Find match and validate player
+      const match = await db.collection<Match>('matches').findOne({ matchId });
+
+      if (!match) {
+        res.status(404).json({ error: 'Match not found' });
+        return;
+      }
+
+      if (!match.players.includes(turn.player)) {
+        res.status(400).json({ error: 'Player not in this match' });
+        return;
+      }
+
+      // Add turn to match
+      const result = await db.collection<Match>('matches').findOneAndUpdate(
+        { matchId },
+        { $push: { turns: turn as Turn } },
+        { returnDocument: 'after' }
+      );
+
+      if (!result) {
+        res.status(404).json({ error: 'Match not found' });
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error adding turn:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
 
 app.get('/users/:name/statistics', async (req: Request, res: Response) => {
   try {
@@ -174,9 +306,4 @@ async function startServer() {
 }
 
 startServer();
-
-// cron job
-cron.schedule("* * 23 * * *", () => {
-  ingestPlayerDartEvents(db);
-});
 

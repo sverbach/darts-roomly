@@ -1,11 +1,11 @@
 {
   "name": "Darts Roomly Extension",
-  "description": "Chrome extension to use for playing dart @ romoly",
+  "description": "Chrome extension to use for playing dart @ roomly",
   "version": "1.0",
   "manifest_version": 3,
   "host_permissions": [
-    "http://localhost:3000/*",
-    "http://192.168.1.171:3000/*"
+    "http://localhost:8082/*",
+    "http://192.168.1.171:8082/*"
   ],
   "content_scripts": [
     {

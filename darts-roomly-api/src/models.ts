@@ -39,3 +39,28 @@ export interface IngestionClock {
   _id?: any;
   lastIngestionTimestamp: number;
 }
+
+export interface Turn {
+  player: string;
+  remainingPoints: number;
+  totalThrowValue: number;
+  currentThrowNumber: number;
+  throws: [string, string?, string?]; // Tuple with 1-3 throws
+}
+
+export interface Match {
+  _id?: any;
+  matchId: string;
+  players: string[];
+  turns: Turn[];
+}
+
+export interface CreateMatchRequest {
+  matchId: string;
+  players: string[];
+}
+
+export interface AddTurnRequest {
+  matchId: string;
+  turn: Turn;
+}
