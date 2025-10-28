@@ -4,6 +4,9 @@ import { MongoClient, Db } from 'mongodb';
 import cron from 'node-cron';
 import { ingestPlayerDartEvents } from './ingest-player-dart-events.js';
 import { DartPlayer } from './models.js';
+import { publicProcedure, router, createContext } from './trpc.js';
+import * as trpcExpress from '@trpc/server/adapters/express';
+import { z } from "zod";
 
 const app = express();
 const PORT = process.env.PORT || 8082;
@@ -33,6 +36,37 @@ async function connectToMongo() {
     process.exit(1);
   }
 }
+
+const appRouter = router({
+  users: publicProcedure
+    .input(z.string())
+    .query(async (opts) => {
+      try {
+        const { input } = opts;
+
+        const collection = db.collection<DartPlayer>(DART_PLAYERS_COLLECTION_NAME);
+        const player = await collection.findOne({ input });
+
+        if (!player) {
+          return { error: 'Player not found' };
+        }
+
+        return { name: player.name, picture: player.picture };
+      } catch (error) {
+        console.error('Error fetching player:', error);
+        return { error: 'Internal server error' };
+      }
+    })
+});
+
+export type AppRouter = typeof appRouter;
+app.use(
+  '/trpc',
+  trpcExpress.createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  }),
+);
 
 app.get('/users/:name', async (req: Request, res: Response) => {
   try {
