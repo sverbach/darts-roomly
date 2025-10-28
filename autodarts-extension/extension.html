@@ -1,15 +1,153 @@
-<html>
-  <body>
-    <h1>:)</h1>
-    <script src="script.js"></script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ROOMLY DARTS Panel</title>
     <style>
-    .ad-ext-player img {
-      opacity: 0.5;
-    }
+      @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;800&display=swap');
 
-    .ad-ext-player .ad-ext-player-active img {
-      opacity: 1;
-    }
+      body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #e8e8e8;
+        font-family: 'Sora', sans-serif;
+      }
+
+      .panel {
+        background: #fff;
+        border: 5px solid #000;
+        padding: 25px;
+        max-width: 300px;
+        width: 100%;
+      }
+
+      h1 {
+        font-size: 19px;
+        font-weight: 800;
+        text-align: center;
+        color: #000;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding-bottom: 10px;
+      }
+
+      .button-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .panel-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 1;
+        background: #fff;
+        border: 3px solid #000;
+        padding: 8px;
+        text-decoration: none;
+        transition: all 0.1s ease;
+        box-shadow: 4px 4px 0 #000;
+        text-align: center;
+      }
+
+      .panel-button:hover {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 #000;
+      }
+
+      .panel-button:active {
+        transform: translate(4px, 4px);
+        box-shadow: 0 0 0 #000;
+      }
+
+      .panel-button:nth-child(1) {
+        background: #696fc7;
+      }
+
+      .panel-button:nth-child(2) {
+        background: #a7aae1;
+      }
+
+      .panel-button:nth-child(3) {
+        background: #f5d3c4;
+      }
+
+      .panel-button:nth-child(4) {
+        background: #f2aebb;
+      }
+
+      .panel-button img {
+        width: 40px;
+        height: 40px;
+        display: block;
+        margin: 0 auto 8px;
+        object-fit: cover;
+      }
+
+      .button-label {
+        font-weight: 800;
+        font-size: 11px;
+        color: #000;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
     </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>ROOMLY DARTS</h1>
+      <div class="button-grid">
+        <a
+          href="https://play.autodarts.io"
+          target="_blank"
+          class="panel-button"
+        >
+          <img
+            src="assets/play.webp"
+            alt="Play"
+          />
+          <div class="button-label">Play</div>
+        </a>
+        <a
+          href="http://autodartspi.local:3180/config"
+          target="_blank"
+          class="panel-button"
+        >
+          <img
+            src="assets/board.webp"
+            alt="Board"
+          />
+          <div class="button-label">Board</div>
+        </a>
+        <a
+          href="https://status.nvier.ch/status/dart"
+          target="_blank"
+          class="panel-button"
+        >
+          <img
+            src="assets/darts-status.png"
+            alt="Status"
+          />
+          <div class="button-label">Status</div>
+        </a>
+        <a
+          href="https://status.nvier.ch/status/grinder"
+          target="_blank"
+          class="panel-button"
+        >
+          <img
+            src="assets/roomly-status.png"
+            alt="Roomly"
+          />
+          <div class="button-label">Roomly</div>
+        </a>
+      </div>
+    </div>
+    <script src="script.js"></script>
   </body>
 </html>
