@@ -1,20 +1,18 @@
 import express, { Request, Response } from 'express';
 import cors from "cors";
 import { MongoClient, Db } from 'mongodb';
-import cron from 'node-cron';
-import { ingestPlayerDartEvents } from './ingest-player-dart-events.js';
 import { AddTurnRequest, CreateMatchRequest, DartPlayer, Match, Turn } from './models.js';
 import { publicProcedure, router, createContext } from './trpc.js';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { z } from "zod";
+import 'dotenv/config';
 
 const app = express();
 app.use(express.json());
 const PORT = process.env.PORT || 8082;
 
-// const MONGO_URI = 'mongodb://192.168.1.170:27017/';
-const MONGO_URI = 'mongodb://localhost:27017/';
-const DB_NAME = 'roomly-darts';
+const MONGO_URI = process.env.MONGO_URI ?? '';
+const DB_NAME = process.env.DB_NAME ?? '';
 const DART_PLAYERS_COLLECTION_NAME = 'dart-players';
 
 let db: Db;
@@ -89,7 +87,7 @@ app.get('/users/:name', async (req: Request, res: Response) => {
 app.post(
   '/matches',
   async (
-    req: Request<{}, {}, CreateMatchRequest>,
+    req: Request<CreateMatchRequest>,
     res: Response
   ) => {
     try {
@@ -142,7 +140,7 @@ app.post(
 app.post(
   '/matches/:matchId/turns',
   async (
-    req: Request<{ matchId: string }, {}, Omit<AddTurnRequest, 'matchId'>>,
+    req: Request<{ matchId: string }, object, Omit<AddTurnRequest, 'matchId'>>,
     res: Response
   ) => {
     try {
@@ -175,7 +173,7 @@ app.post(
         return;
       }
 
-      if (!Array.isArray(turn.throws) || turn.throws.length === 0 || turn.throws.length > 3) {
+      if (!Array.isArray(turn.throws) || turn.throws.length > 3) {
         res.status(400).json({ error: 'throws must be an array with 1-3 elements' });
         return;
       }
