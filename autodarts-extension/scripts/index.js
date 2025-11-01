@@ -1,5 +1,3 @@
-// const DARTS_API_SERVER = 'https://darts.nvier.ch';
-const DARTS_API_SERVER = 'http://localhost:8082';
 let lastUrl = location.href;
 
 // Create observer for URL changes
@@ -97,9 +95,17 @@ function getActivePlayerRemainingPoints() {
     ?? document.querySelector('.ad-ext-player-winner .ad-ext-player-score')).textContent.toLowerCase());
 }
 
+function getDartsApiUrl() {
+  const isDevMode = !!new URL(location.href).searchParams.get("dev");
+
+  return isDevMode
+    ? 'http://localhost:8082'
+    : 'https://darts.nvier.ch';
+}
+
 async function createMatch(matchId, players) {
   try {
-    const response = await fetch(`${DARTS_API_SERVER}/matches`, {
+    const response = await fetch(`${getDartsApiUrl()}/matches`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -127,7 +133,7 @@ async function createMatch(matchId, players) {
 // Add a turn to a match
 async function addTurn(matchId, turn) {
   try {
-    const response = await fetch(`${DARTS_API_SERVER}/matches/${matchId}/turns`, {
+    const response = await fetch(`${getDartsApiUrl()}/matches/${matchId}/turns`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -233,7 +239,7 @@ function createUserProfileImage(userProfile) {
 
 async function loadUserProfile(username) {
   try {
-    const response = await fetch(`${DARTS_API_SERVER}/users/${username}`);
+    const response = await fetch(`${getDartsApiUrl()}/users/${username}`);
 
     if (response.ok) {
       return await response.json();
@@ -310,14 +316,14 @@ function replaceLocalPlayers() {
 // In your content script
 const style = document.createElement('style');
 style.textContent = `
-      .ad - ext - player img {
-        opacity: 0.3;
-        transition: opacity 0.3s ease;
-      }
+   .ad-ext-player img {
+     opacity: 0.3;
+     transition: opacity 0.3s ease;
+   }
 
-        .ad - ext - player.ad - ext - player - active img,
-  .ad - ext - player.ad - ext - player - winner img {
-        opacity: 1;
+  .ad-ext-player.ad-ext-player-active img,
+  .ad-ext-player.ad-ext-player-winner img {
+    opacity: 1;
   }
 `;
 document.head.appendChild(style);
