@@ -64,7 +64,6 @@ export async function processDartEvent(eventMessage: AutodartsEventType) {
       await changeLightingPreset(wledDartPresets.IDLE);
       break;
     case 'match-won':
-    case 'match-ended':
       await changeLightingPreset(wledDartPresets.WIN);
       setTimeout(async () => {
         await changeLightingPreset(wledDartPresets.WIN_IDLE);

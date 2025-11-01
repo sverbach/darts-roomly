@@ -7,7 +7,6 @@ import { processDartEvent } from './dart-events-processor.js';
 import { isAutodartsEvent } from './autodarts-events.js';
 import yargs from 'yargs';
 import { hideBin } from "yargs/helpers";
-import { disposeDatabase, persistEvent, setupDatabase } from './darts-events-persisting.js';
 
 dotenv.config();
 
@@ -75,20 +74,16 @@ socket.on('connect_error', (event) => {
 
 socket.on('connect', async () => {
   console.log('connected!');
-  await setupDatabase();
 });
 
 socket.on('disconnect', async (event) => {
   console.log('closed!', JSON.stringify(event, null, 2));
-  await disposeDatabase();
 });
 
 socket.on('message', async (event) => {
   if (isAutodartsEvent(event) && argv.lighting) {
     await processDartEvent(event);
   }
-
-  await persistEvent({ ...event, timestamp: Date.now(), boardId: argv.board });
 });
 
 const app = express();
