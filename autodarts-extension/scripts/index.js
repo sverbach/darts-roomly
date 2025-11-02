@@ -48,8 +48,11 @@ async function trackScoreIntoDatabase() {
   const paths = location.pathname.split("/");
   const matchId = paths[paths.length - 1];
   const players = [...document.querySelectorAll('.ad-ext-player-name p')].map(p => p.textContent.toLowerCase());
+  const variant = document.querySelector('#ad-ext-game-variant').textContent;
+  const baseScore = document.querySelector('#ad-ext-game-variant').nextSibling?.textContent;
+  const mode = document.querySelector('#ad-ext-game-variant').nextSibling?.nextSibling?.textContent.toLowerCase();
 
-  await createMatch(matchId, players);
+  await createMatch(matchId, players, { variant, baseScore, mode });
 
 
   // then, on each change on the score component, capture and persist the score of the current player.
@@ -103,7 +106,7 @@ function getDartsApiUrl() {
     : 'https://darts.nvier.ch';
 }
 
-async function createMatch(matchId, players) {
+async function createMatch(matchId, players, options) {
   try {
     const response = await fetch(`${getDartsApiUrl()}/matches`, {
       method: 'POST',
@@ -112,7 +115,8 @@ async function createMatch(matchId, players) {
       },
       body: JSON.stringify({
         matchId,
-        players
+        players,
+        options
       })
     });
 

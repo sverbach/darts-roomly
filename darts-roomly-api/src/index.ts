@@ -6,6 +6,7 @@ import { publicProcedure, router, createContext } from './trpc.js';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { z } from "zod";
 import 'dotenv/config';
+import { someMatch } from './some-match.js';
 
 const app = express();
 app.use(express.json());
@@ -91,7 +92,7 @@ app.post(
     res: Response
   ) => {
     try {
-      const { matchId, players } = req.body;
+      const { matchId, players, options } = req.body;
 
       // Validation
       if (!matchId || typeof matchId !== 'string') {
@@ -120,6 +121,7 @@ app.post(
       const match: Match = {
         matchId,
         players,
+        options,
         turns: []
       };
 
@@ -305,3 +307,147 @@ async function startServer() {
 
 startServer();
 
+
+export function cleanup(match: Match): Match {
+  // Group turns by player
+  const turnsByPlayer = new Map<string, Turn[]>();
+
+  for (const turn of match.turns) {
+    if (!turnsByPlayer.has(turn.player)) {
+      turnsByPlayer.set(turn.player, []);
+    }
+    turnsByPlayer.get(turn.player)!.push(turn);
+  }
+
+  // For each player, go in reverse and keep only the last occurrence of each currentThrowNumber
+  const cleanedTurnsByPlayer = new Map<string, Turn[]>();
+
+  for (const [player, turns] of turnsByPlayer.entries()) {
+    const seenThrowNumbers = new Set<number>();
+    const cleanedTurns: Turn[] = [];
+
+    // Iterate in reverse
+    for (let i = turns.length - 1; i >= 0; i--) {
+      const turn = turns[i];
+
+      // Only keep if we haven't seen this throw number yet
+      if (!seenThrowNumbers.has(turn.currentThrowNumber)) {
+
+        const lastTurn = cleanedTurns[0];
+        if (lastTurn && lastTurn.currentThrowNumber - 1 > turn.currentThrowNumber) {
+
+          // bruh moment
+          const missedTurnsAmount = (lastTurn.currentThrowNumber - 1) - turn.currentThrowNumber;
+
+          if (missedTurnsAmount === 1) {
+            const missedTurn: Turn = {
+              ...turn,
+              currentThrowNumber: turn.currentThrowNumber + 1,
+              throws: [
+                turn.throws[0],
+                turn.throws[1],
+                'miss'
+              ]
+            }
+
+            seenThrowNumbers.add(missedTurn.currentThrowNumber);
+            cleanedTurns.unshift(missedTurn);
+          } else if (missedTurnsAmount === 2) {
+            const missedTurn1: Turn = {
+              ...turn,
+              currentThrowNumber: turn.currentThrowNumber + 1,
+              throws: [
+                turn.throws[0],
+                'miss'
+              ]
+            }
+
+            const missedTurn2: Turn = {
+              ...turn,
+              currentThrowNumber: turn.currentThrowNumber + 2,
+              throws: [
+                turn.throws[0],
+                'miss',
+                'miss'
+              ]
+            }
+
+            seenThrowNumbers.add(missedTurn1.currentThrowNumber);
+            seenThrowNumbers.add(missedTurn2.currentThrowNumber);
+            cleanedTurns.unshift(missedTurn2);
+            cleanedTurns.unshift(missedTurn1);
+          } else {
+            const missedTurn1: Turn = {
+              ...turn,
+              currentThrowNumber: turn.currentThrowNumber + 1,
+              throws: [
+                'miss'
+              ]
+            }
+
+            const missedTurn2: Turn = {
+              ...turn,
+              currentThrowNumber: turn.currentThrowNumber + 2,
+              throws: [
+                'miss',
+                'miss'
+              ]
+            }
+
+            const missedTurn3: Turn = {
+              ...turn,
+              currentThrowNumber: turn.currentThrowNumber + 3,
+              throws: [
+                'miss',
+                'miss',
+                'miss'
+              ]
+            }
+
+            seenThrowNumbers.add(missedTurn1.currentThrowNumber);
+            seenThrowNumbers.add(missedTurn2.currentThrowNumber);
+            seenThrowNumbers.add(missedTurn3.currentThrowNumber);
+            cleanedTurns.unshift(missedTurn3);
+            cleanedTurns.unshift(missedTurn2);
+            cleanedTurns.unshift(missedTurn1);
+          }
+        }
+        seenThrowNumbers.add(turn.currentThrowNumber);
+        cleanedTurns.unshift(turn); // Add to front to maintain original order
+      }
+    }
+
+    cleanedTurnsByPlayer.set(player, cleanedTurns);
+  }
+
+  // Reconstruct the turns array by interleaving players in the original order
+  const cleanedTurns: Turn[] = [];
+
+  // Keep track of current position for each player
+  const playerIndices = new Map<string, number>();
+  for (const player of match.players) {
+    playerIndices.set(player, 0);
+  }
+
+  // Iterate through original turns to maintain the interleaving pattern
+  for (const originalTurn of match.turns) {
+    const player = originalTurn.player;
+    const playerTurns = cleanedTurnsByPlayer.get(player)!;
+    const playerIndex = playerIndices.get(player)!;
+
+    // Check if this original turn's currentThrowNumber matches the next cleaned turn
+    if (playerIndex < playerTurns.length &&
+      playerTurns[playerIndex].currentThrowNumber === originalTurn.currentThrowNumber) {
+      cleanedTurns.push(playerTurns[playerIndex]);
+      playerIndices.set(player, playerIndex + 1);
+    }
+  }
+
+  return {
+    ...match,
+    turns: cleanedTurns
+  };
+}
+
+console.log('vorher', someMatch.turns.filter(t => t.player === 'schwembini'));
+console.log('cleaned up', cleanup(someMatch).turns.filter(t => t.player === 'schwembini'));

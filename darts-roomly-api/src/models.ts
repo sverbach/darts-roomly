@@ -53,6 +53,11 @@ export interface Match {
   matchId: string;
   players: string[];
   turns: Turn[];
+  options: {
+    variant: string;
+    baseScore: string;
+    mode: string;
+  }
 }
 
 export interface CreateMatchRequest {
