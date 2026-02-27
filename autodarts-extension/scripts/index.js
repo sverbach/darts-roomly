@@ -281,7 +281,9 @@ function replaceLocalPlayers() {
     'SHIMI',
     'VOLKI',
     'SCHWEMBINI',
-    'TIM'
+    'TIM',
+    'MANU',
+    'LEIF'
   ].sort();
 
   const parent = clearButton.parentNode;
